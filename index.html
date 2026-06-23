@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Daily Loop — A Workflow for Sustainable Productivity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0e17;
+    --bg-elev: #111728;
+    --bg-elev-2: #1a2338;
+    --bg-elev-3: #212c46;
+    --border: #262f49;
+    --border-soft: #1c2438;
+    --text: #edf0f8;
+    --text-dim: #9aa6c4;
+    --text-mute: #66708e;
+
+    --amber: #ffb238;
+    --amber-soft: rgba(255,178,56,.13);
+    --teal: #2dd9c0;
+    --teal-soft: rgba(45,217,192,.13);
+    --coral: #ff5c72;
+    --coral-soft: rgba(255,92,114,.13);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167,139,250,.13);
+
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --sidebar-w: 268px;
+    --topbar-h: 68px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(900px 600px at 85% -10%, rgba(167,139,250,.08), transparent 60%),
+      radial-gradient(800px 500px at -10% 20%, rgba(255,178,56,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-0.01em;}
+  p{margin:0 0 14px;}
+  ul{margin:0; padding:0;}
+  a{color:inherit;}
+  ::selection{background:var(--amber-soft); color:var(--amber);}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-mute);
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+
+  /* ---------- layout ---------- */
+  .sidebar{
+    position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w);
+    background:var(--bg-elev);
+    border-right:1px solid var(--border-soft);
+    padding:22px 16px;
+    display:flex; flex-direction:column;
+    z-index:40;
+    overflow-y:auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    padding:6px 10px 20px;
+  }
+  .brand-mark{
+    width:34px; height:34px; border-radius:10px;
+    background:conic-gradient(from 180deg, var(--violet), var(--amber), var(--teal), var(--coral), var(--violet));
+    position:relative; flex:none;
+  }
+  .brand-mark::after{
+    content:""; position:absolute; inset:4px; border-radius:7px; background:var(--bg-elev);
+  }
+  .brand-name{font-family:var(--font-display); font-weight:700; font-size:15px; line-height:1.2;}
+  .brand-sub{font-family:var(--font-mono); font-size:10.5px; color:var(--text-mute); letter-spacing:.06em;}
+
+  nav.toc{display:flex; flex-direction:column; gap:2px; margin-top:6px;}
+  nav.toc a{
+    display:flex; align-items:center; gap:11px;
+    padding:9px 10px; border-radius:var(--radius-sm);
+    color:var(--text-dim); text-decoration:none; font-size:13.5px; font-weight:500;
+    border:1px solid transparent;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  nav.toc a svg{flex:none; opacity:.85;}
+  nav.toc a:hover{background:var(--bg-elev-2); color:var(--text);}
+  nav.toc a.active{
+    background:var(--bg-elev-2);
+    color:var(--text);
+    border-color:var(--border);
+  }
+  nav.toc a.active .navdot{background:var(--accent-color, var(--amber));}
+  .navdot{width:6px; height:6px; border-radius:50%; background:var(--border); flex:none; margin-right:-2px;}
+
+  .sidebar-footer{
+    margin-top:auto; padding:14px 10px 4px;
+    border-top:1px solid var(--border-soft);
+    font-size:11.5px; color:var(--text-mute); line-height:1.5;
+  }
+
+  .topbar{
+    position:fixed; top:0; left:var(--sidebar-w); right:0; height:var(--topbar-h);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px;
+    background:rgba(10,14,23,.78);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+    z-index:30;
+  }
+  .topbar-title{font-family:var(--font-mono); font-size:12.5px; color:var(--text-mute); letter-spacing:.08em; text-transform:uppercase;}
+  .menu-btn{display:none; background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px; cursor:pointer;}
+
+  .search-wrap{position:relative; width:280px;}
+  .search-wrap input{
+    width:100%; background:var(--bg-elev-2); border:1px solid var(--border);
+    color:var(--text); border-radius:999px; padding:9px 38px 9px 36px;
+    font-family:var(--font-body); font-size:13.5px;
+    outline:none; transition:border-color .15s, background .15s;
+  }
+  .search-wrap input::placeholder{color:var(--text-mute);}
+  .search-wrap input:focus{border-color:var(--violet); background:var(--bg-elev-3);}
+  .search-icon{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-mute); pointer-events:none;}
+  .search-count{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    font-family:var(--font-mono); font-size:10.5px; color:var(--text-mute);
+    background:var(--bg-elev-3); padding:2px 7px; border-radius:999px; display:none;
+  }
+  mark.search-hit{background:var(--amber-soft); color:var(--amber); border-radius:3px; padding:0 1px;}
+  mark.search-hit.current{background:var(--teal-soft); color:var(--teal);}
+
+  main{margin-left:var(--sidebar-w); padding-top:var(--topbar-h);}
+  section{
+    padding:64px 48px;
+    max-width:980px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  section:last-of-type{border-bottom:none;}
+  .section-head{margin-bottom:30px;}
+  .section-head h2{font-size:28px; margin-top:8px; font-weight:700;}
+  .section-head .lede{color:var(--text-dim); font-size:15.5px; max-width:640px; margin-top:10px;}
+
+  .reveal{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease;}
+  .reveal.is-visible{opacity:1; transform:translateY(0);}
+
+  /* ---------- hero ---------- */
+  #top{padding-top:54px;}
+  .hero{
+    display:grid; grid-template-columns:1.05fr .95fr; gap:36px; align-items:center;
+  }
+  .hero-copy .eyebrow{margin-bottom:16px;}
+  .hero-copy h1{font-size:42px; line-height:1.12; font-weight:700;}
+  .hero-copy h1 .accent{color:var(--amber);}
+  .hero-copy .sub{color:var(--text-dim); font-size:16.5px; margin-top:18px; max-width:480px;}
+  .hero-tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:22px;}
+  .hero-tag{
+    font-family:var(--font-mono); font-size:11.5px; padding:6px 11px; border-radius:999px;
+    border:1px solid var(--border); color:var(--text-dim);
+  }
+  .loop-wrap{position:relative;}
+  .loop-wrap svg{width:100%; height:auto; display:block;}
+  .loop-caption{
+    text-align:center; font-family:var(--font-mono); font-size:11px; color:var(--text-mute);
+    margin-top:6px; letter-spacing:.04em;
+  }
+
+  /* ---------- cards / grids ---------- */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .card{
+    background:var(--bg-elev); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+    padding:22px 24px;
+  }
+  .card h4{font-size:15.5px; margin-bottom:8px;}
+  .card p{color:var(--text-dim); font-size:14px; margin-bottom:0;}
+
+  .mech-list{display:flex; flex-direction:column; gap:14px; margin-top:24px;}
+  .mech{
+    display:grid; grid-template-columns:46px 1fr; gap:16px;
+    background:var(--bg-elev); border:1px solid var(--border-soft); border-radius:var(--radius-md);
+    padding:18px 20px;
+  }
+  .mech-num{
+    font-family:var(--font-mono); font-size:13px; color:var(--bg);
+    width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    font-weight:600; background:var(--accent-color, var(--amber));
+  }
+  .mech h4{font-size:14.5px; margin-bottom:4px;}
+  .mech p{font-size:13.5px; color:var(--text-dim); margin:0;}
+
+  /* accordion */
+  .accordion{display:flex; flex-direction:column; gap:12px; margin-top:24px;}
+  .acc-item{
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); background:var(--bg-elev);
+    overflow:hidden;
+  }
+  .acc-head{
+    display:flex; align-items:center; gap:14px; padding:18px 20px; cursor:pointer;
+    user-select:none;
+  }
+  .acc-head .phase-no{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--accent-color, var(--amber));
+    border:1px solid var(--border); padding:4px 9px; border-radius:999px; flex:none;
+  }
+  .acc-head h4{flex:1; font-size:15.5px;}
+  .acc-head .chev{transition:transform .25s ease; color:var(--text-mute); flex:none;}
+  .acc-item.open .acc-head .chev{transform:rotate(90deg);}
+  .acc-body{
+    max-height:0; overflow:hidden; transition:max-height .3s ease;
+    padding:0 20px;
+  }
+  .acc-item.open .acc-body{padding:0 20px 20px;}
+  .acc-body .acc-inner{color:var(--text-dim); font-size:14px;}
+  .checklist{list-style:none; margin:14px 0 0; display:flex; flex-direction:column; gap:9px;}
+  .checklist li{display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13.8px;}
+  .checklist .box{
+    width:18px; height:18px; flex:none; margin-top:1px; border-radius:5px; border:1.5px solid var(--border);
+    display:flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s;
+  }
+  .checklist li.checked .box{background:var(--accent-color, var(--teal)); border-color:var(--accent-color, var(--teal));}
+  .checklist li.checked span.label{color:var(--text-mute); text-decoration:line-through;}
+  .checklist .box svg{opacity:0; transition:opacity .1s;}
+  .checklist li.checked .box svg{opacity:1;}
+  .tip{
+    margin-top:14px; padding:11px 14px; border-radius:var(--radius-sm);
+    background:var(--accent-soft, var(--violet-soft)); border:1px solid var(--border);
+    font-size:13px; color:var(--text-dim);
+  }
+  .tip b{color:var(--text);}
+  .progress-wrap{
+    display:flex; align-items:center; gap:12px; margin-top:24px; padding:14px 18px;
+    background:var(--bg-elev-2); border:1px solid var(--border-soft); border-radius:var(--radius-md);
+  }
+  .progress-track{flex:1; height:8px; background:var(--bg-elev-3); border-radius:999px; overflow:hidden;}
+  .progress-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--amber), var(--teal)); border-radius:999px; transition:width .25s ease;}
+  .progress-label{font-family:var(--font-mono); font-size:11.5px; color:var(--text-mute); white-space:nowrap;}
+
+  /* benefits / consequences */
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:24px;}
+  .compare-col{border-radius:var(--radius-lg); padding:22px 24px; border:1px solid var(--border-soft);}
+  .compare-col.good{background:linear-gradient(180deg, var(--teal-soft), transparent 60%), var(--bg-elev);}
+  .compare-col.bad{background:linear-gradient(180deg, var(--coral-soft), transparent 60%), var(--bg-elev);}
+  .compare-col h4{font-size:14.5px; display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+  .compare-col ul{display:flex; flex-direction:column; gap:11px;}
+  .compare-col li{display:flex; gap:10px; font-size:13.8px; color:var(--text-dim); align-items:flex-start;}
+  .compare-col li svg{flex:none; margin-top:2px;}
+
+  /* dos / donts */
+  .dosdonts{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:24px;}
+  .dd-col{border-radius:var(--radius-lg); padding:22px 24px; border:1px solid var(--border-soft); background:var(--bg-elev);}
+  .dd-col h4{font-size:14.5px; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+  .dd-col ul{display:flex; flex-direction:column; gap:11px;}
+  .dd-col li{display:flex; gap:10px; font-size:13.8px; color:var(--text-dim);}
+  .dd-col.do h4{color:var(--teal);}
+  .dd-col.dont h4{color:var(--coral);}
+  .dd-col li svg{flex:none; margin-top:2px;}
+
+  /* people / companies */
+  .people-grid, .company-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px;}
+  .pc-card{
+    background:var(--bg-elev); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+    padding:20px 22px;
+  }
+  .pc-head{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .pc-avatar{
+    width:38px; height:38px; border-radius:10px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:14px; color:var(--bg);
+    background:var(--accent-color, var(--violet));
+  }
+  .pc-head h4{font-size:15px;}
+  .pc-head .role{font-size:11.5px; color:var(--text-mute); font-family:var(--font-mono);}
+  .pc-card p{font-size:13.5px; color:var(--text-dim); margin-bottom:8px;}
+  .pc-adv{
+    font-size:12.5px; color:var(--text); background:var(--bg-elev-2); border-radius:var(--radius-sm);
+    padding:9px 11px; border-left:3px solid var(--accent-color, var(--amber));
+  }
+  .pc-adv b{color:var(--accent-color, var(--amber)); font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:3px;}
+
+  /* takeaway */
+  .takeaway-box{
+    margin-top:8px; padding:36px 38px; border-radius:var(--radius-lg);
+    background:linear-gradient(135deg, var(--violet-soft), var(--amber-soft));
+    border:1px solid var(--border);
+    position:relative;
+  }
+  .takeaway-box .quote-mark{font-family:var(--font-display); font-size:54px; color:var(--accent-color, var(--amber)); opacity:.4; line-height:0; position:absolute; top:18px; left:24px;}
+  .takeaway-box p{
+    font-family:var(--font-display); font-size:21px; line-height:1.45; color:var(--text);
+    margin:0; position:relative; z-index:1; font-weight:600;
+  }
+
+  /* quiz */
+  .quiz-list{display:flex; flex-direction:column; gap:16px; margin-top:24px;}
+  .quiz-card{background:var(--bg-elev); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:20px 22px;}
+  .quiz-q{display:flex; gap:12px; margin-bottom:14px;}
+  .quiz-q .qnum{
+    font-family:var(--font-mono); font-size:12px; color:var(--bg); background:var(--violet);
+    width:26px; height:26px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center; font-weight:600;
+  }
+  .quiz-q h4{font-size:14.5px; font-weight:600; padding-top:2px;}
+  .quiz-opts{display:flex; flex-direction:column; gap:8px; margin-bottom:14px;}
+  .quiz-opt{
+    border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 13px; font-size:13.5px;
+    color:var(--text-dim); cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .quiz-opt:hover{border-color:var(--text-mute); color:var(--text);}
+  .quiz-opt.picked{border-color:var(--violet); color:var(--text);}
+  .quiz-opt.reveal-correct{border-color:var(--teal); color:var(--teal); background:var(--teal-soft);}
+  .quiz-opt.reveal-wrong-pick{border-color:var(--coral); color:var(--coral); background:var(--coral-soft);}
+  .quiz-actions{display:flex; align-items:center; gap:12px;}
+  .btn-reveal{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase;
+    background:var(--bg-elev-2); color:var(--text); border:1px solid var(--border); border-radius:999px;
+    padding:8px 16px; cursor:pointer; transition:background .15s, border-color .15s;
+  }
+  .btn-reveal:hover{border-color:var(--violet);}
+  .quiz-explain{
+    margin-top:12px; font-size:13px; color:var(--text-dim); padding:10px 13px; border-radius:var(--radius-sm);
+    background:var(--bg-elev-2); display:none;
+  }
+  .quiz-card.answered .quiz-explain{display:block;}
+
+  /* back to top */
+  .back-top{
+    position:fixed; bottom:26px; right:26px; width:46px; height:46px; border-radius:50%;
+    background:var(--bg-elev-3); border:1px solid var(--border); color:var(--text);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    opacity:0; transform:translateY(10px); pointer-events:none; transition:opacity .25s, transform .25s, border-color .2s;
+    z-index:35;
+  }
+  .back-top.show{opacity:1; transform:translateY(0); pointer-events:auto;}
+  .back-top:hover{border-color:var(--amber);}
+
+  footer.page-footer{
+    margin-left:var(--sidebar-w); padding:30px 48px 60px; color:var(--text-mute); font-size:12.5px;
+    font-family:var(--font-mono);
+  }
+
+  @media (max-width: 900px){
+    .sidebar{transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.5);}
+    .sidebar.open{transform:translateX(0);}
+    .topbar{left:0; padding:0 16px;}
+    .menu-btn{display:flex;}
+    main, footer.page-footer{margin-left:0;}
+    section{padding:46px 22px;}
+    .hero{grid-template-columns:1fr;}
+    .grid-2, .compare, .dosdonts, .people-grid, .company-grid{grid-template-columns:1fr;}
+    .search-wrap{width:170px;}
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name">The Daily Loop</div>
+      <div class="brand-sub">WORKFLOW GUIDE</div>
+    </div>
+  </div>
+
+  <nav class="toc" id="toc">
+    <a href="#top" data-color="amber"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/></svg>
+      Overview</a>
+    <a href="#why" data-color="violet"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 14.5h6M8.5 17h3M10 2.5a4.8 4.8 0 0 0-2.7 8.7c.4.3.7.8.7 1.3v.5h4v-.5c0-.5.3-1 .7-1.3A4.8 4.8 0 0 0 10 2.5Z"/></svg>
+      Why It Matters</a>
+    <a href="#what" data-color="amber"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5 17.5 7 10 11.5 2.5 7 10 2.5Z"/><path d="M2.5 10.5 10 15l7.5-4.5M2.5 14 10 18.5 17.5 14"/></svg>
+      The Framework</a>
+    <a href="#how" data-color="teal"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 6h2M3.5 10h2M3.5 14h2"/><path d="M8 6h8.5M8 10h8.5M8 14h6"/></svg>
+      How To Run It</a>
+    <a href="#benefits" data-color="teal"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5v15M5 5.5l-3 5.5a3 3 0 0 0 6 0ZM18 5.5l-3 5.5a3 3 0 0 0 6 0Z"/><path d="M4 17.5h12"/></svg>
+      Benefits &amp; Costs</a>
+    <a href="#dosdonts" data-color="coral"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 10 7 13.5l9-9"/></svg>
+      Dos &amp; Don'ts</a>
+    <a href="#people" data-color="violet"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="2.6"/><circle cx="14" cy="8.5" r="2.1"/><path d="M2.5 16c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M12 12.7c1.8.1 3.5 1.4 3.5 3.3"/></svg>
+      Famous Practitioners</a>
+    <a href="#companies" data-color="amber"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7.5" width="6" height="9.5"/><rect x="11" y="3" width="6" height="14"/><line x1="5" y1="10" x2="6.5" y2="10"/><line x1="13" y1="6" x2="14.5" y2="6"/><line x1="13" y1="9.5" x2="14.5" y2="9.5"/></svg>
+      Companies</a>
+    <a href="#takeaway" data-color="violet"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 6.5c0-1.4 1.2-2 2.3-2 1.3 0 2 .9 2 2 0 1.7-1.8 2-1.8 3.7h-.4C6.6 8.7 5 8.3 5 6.5Zm6.7 0c0-1.4 1.2-2 2.3-2 1.3 0 2 .9 2 2 0 1.7-1.8 2-1.8 3.7h-.4c-.5-1.5-2.1-1.9-2.1-3.7Z"/></svg>
+      The Takeaway</a>
+    <a href="#quiz" data-color="coral"><span class="navdot"></span>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 8a2.2 2.2 0 1 1 3.3 1.9c-.7.5-1.1.9-1.1 1.8"/><circle cx="10" cy="14" r=".4" fill="currentColor"/></svg>
+      Quiz</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    Built around a closed loop: plan once, protect focus, timebox the friction, recover on schedule, repeat.
+  </div>
+</aside>
+
+<div class="topbar">
+  <span class="topbar-title" id="topbarTitle">The Daily Loop</span>
+  <div class="search-wrap">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8.5" cy="8.5" r="6"/><line x1="17" y1="17" x2="13.2" y2="13.2"/></svg>
+    <input type="text" id="searchInput" placeholder="Search the guide…" autocomplete="off">
+    <span class="search-count" id="searchCount">0</span>
+  </div>
+</div>
+
+<main id="mainContent">
+
+  <!-- ===================== HERO / OVERVIEW ===================== -->
+  <section id="top">
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="dot" style="background:var(--amber)"></span>WORK PRODUCTIVITY · DAILY SYSTEM</div>
+        <h1>A simple loop that<br>protects your <span class="accent">best work</span><br>every single day.</h1>
+        <p class="sub">Most days fall apart not from a lack of effort, but from a lack of structure — no clear priority, no protected focus time, and no plan for the moment something blocks you. This guide breaks down a six-phase daily loop that fixes all three, and shows you exactly how to run it.</p>
+        <div class="hero-tags">
+          <span class="hero-tag">Top 3 priorities</span>
+          <span class="hero-tag">45–90 min focus blocks</span>
+          <span class="hero-tag">15-minute blocker rule</span>
+          <span class="hero-tag">daily shutdown ritual</span>
+        </div>
+      </div>
+      <div class="loop-wrap">
+        <svg id="loopSvg" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="loop-caption">THE LOOP NEVER REALLY ENDS — IT RESETS EVERY MORNING</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== WHY ===================== -->
+  <section id="why">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--violet)"></span>WHY IT MATTERS</div>
+      <h2>Your brain wasn't built for an unstructured day</h2>
+      <p class="lede">A workday without structure isn't neutral — it quietly costs you focus, energy, and follow-through. Here's the research behind why a daily loop outperforms "just winging it."</p>
+    </div>
+
+    <div class="mech-list">
+      <div class="mech reveal" style="--accent-color:var(--violet)">
+        <div class="mech-num">1</div>
+        <div><h4>Decisions are a depletable resource</h4>
+        <p>Every small choice — what to do next, what to answer first, what to skip — draws from the same limited pool of mental energy researchers call decision fatigue. Deciding your top priorities once, before the day starts, protects that energy for the work itself instead of burning it on dozens of tiny choices.</p></div>
+      </div>
+      <div class="mech reveal" style="--accent-color:var(--amber)">
+        <div class="mech-num">2</div>
+        <div><h4>Switching tasks is expensive</h4>
+        <p>Attention research on workplace interruptions has repeatedly found that it can take well over fifteen minutes to fully regain deep focus after a distraction. A day built from one undefined task to the next is, in effect, a day spent mostly paying a "re-focusing tax."</p></div>
+      </div>
+      <div class="mech reveal" style="--accent-color:var(--teal)">
+        <div class="mech-num">3</div>
+        <div><h4>Your alertness moves in waves, not a flat line</h4>
+        <p>Sleep researcher Nathaniel Kleitman documented a roughly 90-minute "basic rest-activity cycle" that continues during waking hours — alertness rises, peaks, then dips. The loop's 45–90 minute focus blocks followed by short rests work with that wave instead of fighting it.</p></div>
+      </div>
+      <div class="mech reveal" style="--accent-color:var(--coral)">
+        <div class="mech-num">4</div>
+        <div><h4>Unfinished problems keep running in the background</h4>
+        <p>The Zeigarnik effect describes how unfinished tasks linger in memory far more persistently than finished ones. A blocker left to fester, or a day that ends without review, keeps nagging at you long after you've logged off — which is exactly what the loop's escalation step and shutdown ritual are designed to prevent.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== WHAT (deep dive) ===================== -->
+  <section id="what">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--amber)"></span>THE FRAMEWORK, EXPLAINED</div>
+      <h2>What the Daily Loop actually is</h2>
+      <p class="lede">It isn't a rigid timetable. It's a closed control loop — <b style="color:var(--text)">plan → execute → monitor → adjust → recover → review</b> — that runs twice a day and resets every morning. Each step exists to solve one specific, well-documented productivity failure.</p>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div class="card">
+        <h4 style="color:var(--violet)">Pick 3, not 10</h4>
+        <p>The "Top 3" step is a leaner descendant of the century-old Ivy Lee Method, where a productivity consultant had Charles Schwab's executives write down their six most important tasks each evening, ranked by importance, and work them in strict order. Cutting that list to three keeps it realistic for a single day.</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--amber)">Eat the hardest frog first</h4>
+        <p>Doing your hardest or most important task before anything else — popularized by Brian Tracy's "Eat That Frog!" — front-loads the task that benefits most from your freshest focus and willpower, instead of saving it for when you're tired.</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--teal)">Rest is part of the work, not a break from it</h4>
+        <p>The short rests aren't slack in the system — they're what let the next 45–90 minute block start near full alertness instead of half-depleted. Skipping them doesn't create more focus time; it just spreads fatigue across the rest of the day.</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--coral)">A timer on getting stuck</h4>
+        <p>The 15-minute rule turns "I'm blocked" from an open-ended state into a decision point: solve it now, or hand it off. This single rule is what stops a five-minute problem from quietly eating an entire afternoon.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOW ===================== -->
+  <section id="how">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--teal)"></span>HOW TO RUN IT</div>
+      <h2>Six phases, one day</h2>
+      <p class="lede">Run through these in order. Tick items off as you go — the progress bar below is just for today, so it resets whenever you reload the page.</p>
+    </div>
+
+    <div class="progress-wrap reveal">
+      <span class="progress-label" id="progressLabel">0 / 24 STEPS</span>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="accordion reveal" id="accordion">
+
+      <div class="acc-item open" data-color="violet">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--violet); color:var(--violet)">PHASE 01</span>
+          <h4>Morning Setup</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--violet)">
+          <div class="acc-inner">
+            <p>Before you touch email or chat, decide what actually matters today.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Glance at your full task list — don't start working from it yet.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Write down your Top 3 tasks for the day, ranked in order.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Identify which of the three is hardest or most important — that one goes first.</span></li>
+            </ul>
+            <div class="tip"><b>Tip —</b> Do this away from your inbox. Reacting to messages first lets other people's priorities pick your Top 3 for you.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item" data-color="amber">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--amber); color:var(--amber)">PHASE 02</span>
+          <h4>Deep Work Block</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--amber)">
+          <div class="acc-inner">
+            <p>Run a single focused session on task one, then handle whatever stops you using a strict timebox.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Silence notifications and work in one 45–90 minute block.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Take a real 5–15 minute rest when the block ends — step away from the screen.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">If you hit a blocker: can it be solved in 15 minutes? If yes, solve it now.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">If not, ask, coordinate, or escalate immediately — then move to your next productive task while you wait.</span></li>
+            </ul>
+            <div class="tip"><b>Tip —</b> Escalating isn't failure. A blocker raised in the first hour costs minutes; the same blocker discovered at 4pm costs the rest of your day.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item" data-color="teal">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--teal); color:var(--teal)">PHASE 03</span>
+          <h4>Midday Reset</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--teal)">
+          <div class="acc-inner">
+            <p>Close out the task properly and check your own fuel gauge before pushing further.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Finish the current task, or reach a clear, defined stopping point.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Update status / save progress so the next session starts instantly, not from scratch.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Honestly check your focus: good to continue, or mentally tired?</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">If tired, take a short reset break before your next task — not after you've already stalled.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Take your lunch / longer recovery break — fully, away from your desk.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item" data-color="amber">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--amber); color:var(--amber)">PHASE 04</span>
+          <h4>Afternoon Block</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--amber)">
+          <div class="acc-inner">
+            <p>Mornings drift. Re-check what actually matters before you spend another focus block.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Re-scan your Top 3 — has anything changed or come up since this morning?</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Run another focused work session on the next priority item.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Take a short rest at the end of the block, same as the morning.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item" data-color="violet">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--violet); color:var(--violet)">PHASE 05</span>
+          <h4>Time Check</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--violet)">
+          <div class="acc-inner">
+            <p>A simple fork: keep producing, or start setting up tomorrow.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Check how much working time is actually left in the day.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Enough time → move to the next important task on your list.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Low on time → switch to organizing tomorrow instead of starting something new.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item" data-color="coral">
+        <div class="acc-head">
+          <span class="phase-no" style="--accent-color:var(--coral); color:var(--coral)">PHASE 06</span>
+          <h4>Shutdown Ritual</h4>
+          <svg class="chev" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+        </div>
+        <div class="acc-body" style="--accent-color:var(--coral)">
+          <div class="acc-inner">
+            <p>Close every open loop on purpose, so your evening starts free of unfinished work.</p>
+            <ul class="checklist">
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Run a short end-of-day review: what got done, what didn't, what's first tomorrow.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Write tomorrow's likely Top 3 while today is still fresh in your head.</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Say or do a fixed shutdown cue — close the laptop, close the tab, anything that marks "done."</span></li>
+              <li><span class="box"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.4"><path d="M4 10l4 4 8-9"/></svg></span><span class="label">Mentally shut down work — then repeat the whole loop again tomorrow.</span></li>
+            </ul>
+            <div class="tip"><b>Tip —</b> Computer scientist and author Cal Newport recommends an actual spoken phrase ("shutdown complete") at the end of this ritual — a small, repeatable cue tells your brain the workday is genuinely over.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== BENEFITS ===================== -->
+  <section id="benefits">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--teal)"></span>BENEFITS &amp; COSTS</div>
+      <h2>What you gain — and what skipping it costs</h2>
+      <p class="lede">The loop's value shows up less on any single day and more in the gap between a week that follows it and a week that doesn't.</p>
+    </div>
+
+    <div class="compare reveal">
+      <div class="compare-col good">
+        <h4><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><circle cx="10" cy="10" r="8"/><path d="M6.5 10l2.5 2.5L14 7.5"/></svg>FOLLOW THE LOOP</h4>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Your most important work gets done while your focus is freshest, not whenever there's time left over.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Blockers get unstuck in minutes or hours, not days, because escalation is built in rather than avoided.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Energy is paced across the whole day, so the 4pm version of you is still capable of good decisions.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Work stays at work — the shutdown ritual gives your evening an actual boundary.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Consistency compounds — the loop gets easier to run the longer you keep running it.</li>
+        </ul>
+      </div>
+      <div class="compare-col bad">
+        <h4><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><circle cx="10" cy="10" r="8"/><path d="M7 7l6 6M13 7l-6 6"/></svg>SKIP THE LOOP</h4>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Whoever messages loudest sets your priorities for you, every day, by default.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Blockers sit quietly for hours or days because there's no rule that forces you to ask for help.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Willpower runs out mid-afternoon, and what's left of the day gets spent on easy, low-value tasks.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Unfinished work follows you into the evening, showing up as rumination and worse sleep.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Every day starts from zero — no rhythm builds up, so each morning feels like starting over.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DOS / DONTS ===================== -->
+  <section id="dosdonts">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--coral)"></span>DOS &amp; DON'TS</div>
+      <h2>Run it well, not just technically</h2>
+      <p class="lede">The loop is simple to describe and easy to run halfheartedly. These are the details that separate the two.</p>
+    </div>
+
+    <div class="dosdonts reveal">
+      <div class="dd-col do">
+        <h4><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>DO</h4>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Write your Top 3 down before opening email or chat.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Protect your focus block from notifications, like a meeting you can't skip.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Actually timebox troubleshooting — set a real 15-minute limit, not a vague feeling.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Ask for help the same day a blocker appears, not after struggling alone.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Close the day with a two-minute review, even on days that felt unproductive.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 10l4 4 8-9"/></svg>Keep the rhythm even on lighter days — consistency is the actual mechanism.</li>
+        </ul>
+      </div>
+      <div class="dd-col dont">
+        <h4><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>DON'T</h4>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Let "Top 3" quietly grow into a Top 10 — that defeats the entire point.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Treat the 15-minute rule as optional when you're "almost there."</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Skip short rests "to save time" — fatigue doesn't disappear, it just relocates to later.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Let escalation turn into silently struggling because asking feels like admitting failure.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Open email or chat the very first thing in the morning, before your priorities are set.</li>
+          <li><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M7 7l6 6M13 7l-6 6"/></svg>Carry unresolved tasks only in your head overnight — write them down instead.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PEOPLE ===================== -->
+  <section id="people">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--violet)"></span>FAMOUS PRACTITIONERS</div>
+      <h2>5 people who run some version of this loop</h2>
+      <p class="lede">None of them use this exact diagram — but each leans on the same underlying mechanisms: protect priorities, protect focus, and protect recovery.</p>
+    </div>
+
+    <div class="people-grid reveal">
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--amber)">CN</div>
+          <div><h4>Cal Newport</h4><div class="role">Computer scientist &amp; author of "Deep Work"</div></div>
+        </div>
+        <p>Newport schedules fixed blocks for deep, single-task work and closes every workday with a deliberate shutdown ritual — a fixed phrase that signals to his brain the workday is genuinely complete.</p>
+        <div class="pc-adv" style="--accent-color:var(--amber)"><b>Advantage</b>Long, protected focus blocks for high-value cognitive work, and a clean mental boundary between work and personal time each evening.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--coral)">EM</div>
+          <div><h4>Elon Musk</h4><div class="role">CEO, Tesla &amp; SpaceX</div></div>
+        </div>
+        <p>Musk is widely reported to plan his day in very tight time blocks — commonly described as five-minute increments — leaving little or no unscheduled time across his companies (Musk himself has pushed back on the literal "five minutes" framing, though the underlying habit of dense, pre-planned scheduling is well documented).</p>
+        <div class="pc-adv" style="--accent-color:var(--coral)"><b>Advantage</b>Tightly boxed time forces faster decisions and stops meetings or tasks from quietly expanding to fill open time.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--violet)">BG</div>
+          <div><h4>Bill Gates</h4><div class="role">Co-founder, Microsoft</div></div>
+        </div>
+        <p>Twice a year, Gates takes a week-long "Think Week," isolating himself to read employee proposals and reflect — a scaled-up version of this loop's afternoon and end-of-day review steps.</p>
+        <div class="pc-adv" style="--accent-color:var(--violet)"><b>Advantage</b>Several major Microsoft initiatives, including its 1995 push into the internet, reportedly traced back directly to ideas generated during these focused review periods.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--teal)">BO</div>
+          <div><h4>Barack Obama</h4><div class="role">44th U.S. President</div></div>
+        </div>
+        <p>Obama has said he deliberately limited his wardrobe to gray or blue suits and batched routine decisions, reserving his decision-making energy for the choices that actually mattered each day.</p>
+        <div class="pc-adv" style="--accent-color:var(--teal)"><b>Advantage</b>Reduced decision fatigue across a demanding, unpredictable daily schedule — the same logic behind choosing a fixed Top 3 each morning.</div>
+      </div>
+
+      <div class="pc-card" style="grid-column: span 1;">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--amber)">BF</div>
+          <div><h4>Benjamin Franklin</h4><div class="role">Statesman, scientist, writer</div></div>
+        </div>
+        <p>Franklin's autobiography documents a personal daily schedule with set blocks for work and reflection, ending each night with a self-review question: "What good have I done today?"</p>
+        <div class="pc-adv" style="--accent-color:var(--amber)"><b>Advantage</b>An early, well-documented version of the same plan-execute-review loop, sustained for decades rather than a few motivated weeks.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPANIES ===================== -->
+  <section id="companies">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--amber)"></span>COMPANIES</div>
+      <h2>5 companies that build the loop into how they work</h2>
+      <p class="lede">At a company scale, the same mechanisms show up as production systems, calendar policies, and team rituals.</p>
+    </div>
+
+    <div class="company-grid reveal">
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--coral)">TY</div>
+          <div><h4>Toyota</h4><div class="role">Andon cord, Toyota Production System</div></div>
+        </div>
+        <p>Any line worker can pull the andon cord the instant they spot a problem, triggering an immediate response from a team leader — the exact same logic as this loop's "blocked → escalate" branch.</p>
+        <div class="pc-adv" style="--accent-color:var(--coral)"><b>Advantage</b>Small problems get fixed at the source in minutes, instead of compounding into far more expensive failures further down the line.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--teal)">GO</div>
+          <div><h4>Google</h4><div class="role">Protected focus time</div></div>
+        </div>
+        <p>Google is known for ring-fencing dedicated, meeting-free focus time on engineers' calendars, plus a long history of self-directed priority time, to protect uninterrupted, high-value work.</p>
+        <div class="pc-adv" style="--accent-color:var(--teal)"><b>Advantage</b>The day's focus block survives contact with a calendar full of meeting requests instead of dissolving into them.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--violet)">BC</div>
+          <div><h4>Basecamp (37signals)</h4><div class="role">"Shape Up" six-week cycles</div></div>
+        </div>
+        <p>Basecamp structures work into six-week cycles with an explicit culture of uninterrupted, low-meeting focus time during each cycle, rather than constant status pings.</p>
+        <div class="pc-adv" style="--accent-color:var(--violet)"><b>Advantage</b>Teams ship meaningful, complete chunks of work instead of staying perpetually half-finished and interrupted.</div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--amber)">AZ</div>
+          <div><h4>Amazon</h4><div class="role">Single-threaded ownership</div></div>
+        </div>
+        <p>Amazon assigns a single clear owner to each major priority ("single-threaded leadership") and runs daily operating mechanisms designed to surface blockers quickly rather than let them hide in status reports.</p>
+        <div class="pc-adv" style="--accent-color:var(--amber)"><b>Advantage</b>One top priority keeps moving with a clear owner, instead of many initiatives sitting half-finished with no one fully accountable.</div>
+      </div>
+
+      <div class="pc-card" style="grid-column: span 1;">
+        <div class="pc-head">
+          <div class="pc-avatar" style="background:var(--teal)">PX</div>
+          <div><h4>Pixar Animation Studios</h4><div class="role">"Dailies" review</div></div>
+        </div>
+        <p>Pixar teams hold a short, structured "dailies" session each day to review the previous day's work together and surface problems early, before they spread into later stages of production.</p>
+        <div class="pc-adv" style="--accent-color:var(--teal)"><b>Advantage</b>Mirrors this loop's end-of-day review — issues get caught a day at a time instead of at the end of an entire project.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TAKEAWAY ===================== -->
+  <section id="takeaway">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--violet)"></span>THE TAKEAWAY</div>
+      <h2>If you remember one thing</h2>
+    </div>
+    <div class="takeaway-box reveal">
+      <span class="quote-mark">"</span>
+      <p>The Daily Loop works because it turns a workday into a repeatable cycle of focused effort and real recovery, instead of a string of reactive decisions — protect your best hours for your top priority, timebox the inevitable blockers, and fully close the loop before you reopen it tomorrow.</p>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="dot" style="background:var(--coral)"></span>QUICK CHECK</div>
+      <h2>10-question quiz</h2>
+      <p class="lede">Pick an option if you'd like, then reveal the answer and a short explanation.</p>
+    </div>
+    <div class="quiz-list reveal" id="quizList"></div>
+  </section>
+
+</main>
+
+<footer class="page-footer">THE DAILY LOOP — A WORKFLOW GUIDE · FOR PERSONAL USE</footer>
+
+<div class="back-top" id="backTop" aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 11l5-5 5 5M10 17V6.5"/></svg>
+</div>
+
+<script>
+/* ===================== LOOP DIAGRAM ===================== */
+(function(){
+  const svg = document.getElementById('loopSvg');
+  const cx = 320, cy = 320, R = 178;
+  const colors = {
+    violet: 'var(--violet)', amber: 'var(--amber)', teal: 'var(--teal)', coral: 'var(--coral)'
+  };
+  const stages = [
+    {label:'Start Day', cat:'violet'},
+    {label:'Review Tasks', cat:'violet'},
+    {label:'Pick Top 3', cat:'violet'},
+    {label:'Hardest First', cat:'amber'},
+    {label:'Focused Work', cat:'amber'},
+    {label:'Short Rest', cat:'teal'},
+    {label:'Energy Check', cat:'teal'},
+    {label:'Lunch Break', cat:'teal'},
+    {label:'Afternoon Reset', cat:'violet'},
+    {label:'Afternoon Focus', cat:'amber'},
+    {label:'Day Review', cat:'violet'},
+    {label:'Shutdown', cat:'teal'}
+  ];
+  const n = stages.length;
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+  function pos(i, radius){
+    const deg = -90 + i*(360/n);
+    const rad = deg*Math.PI/180;
+    return { x: cx + radius*Math.cos(rad), y: cy + radius*Math.sin(rad), deg };
+  }
+
+  // defs: glow filter
+  const defs = el('defs', {});
+  const filter = el('filter', {id:'glow', x:'-60%', y:'-60%', width:'220%', height:'220%'});
+  filter.appendChild(el('feGaussianBlur', {'in':'SourceGraphic', stdDeviation:'5', result:'blur'}));
+  const merge = el('feMerge', {});
+  merge.appendChild(el('feMergeNode', {'in':'blur'}));
+  merge.appendChild(el('feMergeNode', {'in':'SourceGraphic'}));
+  filter.appendChild(merge);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
+
+  // faint base ring
+  svg.appendChild(el('circle', {cx, cy, r:R, fill:'none', stroke:'var(--border)', 'stroke-width':1.5, 'stroke-dasharray':'2 6'}));
+
+  // arc segments between consecutive nodes, colored by source node category
+  for(let i=0;i<n;i++){
+    const a = pos(i, R), b = pos((i+1)%n, R);
+    const path = el('path', {
+      d:`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} A ${R} ${R} 0 0 1 ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,
+      fill:'none', stroke:colors[stages[i].cat], 'stroke-width':3, 'stroke-linecap':'round', opacity:0.85
+    });
+    svg.appendChild(path);
+  }
+
+  // node circles + labels
+  stages.forEach((s,i)=>{
+    const p = pos(i, R);
+    const node = el('circle', {cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:9, fill:'var(--bg-elev)', stroke:colors[s.cat], 'stroke-width':3});
+    svg.appendChild(node);
+    const inner = el('circle', {cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:3.2, fill:colors[s.cat]});
+    svg.appendChild(inner);
+
+    const lp = pos(i, R+38);
+    let anchor = 'middle', dy = 0;
+    if(Math.cos(p.deg*Math.PI/180) > 0.35) anchor='start';
+    else if(Math.cos(p.deg*Math.PI/180) < -0.35) anchor='end';
+    if(Math.sin(p.deg*Math.PI/180) < -0.6) dy = -4;
+    if(Math.sin(p.deg*Math.PI/180) > 0.6) dy = 10;
+
+    const num = el('text', {x:lp.x.toFixed(1), y:(lp.y+dy-12).toFixed(1), 'text-anchor':anchor, 'font-family':'JetBrains Mono', 'font-size':9, fill:colors[s.cat], opacity:0.8});
+    num.textContent = String(i+1).padStart(2,'0');
+    svg.appendChild(num);
+
+    const text = el('text', {x:lp.x.toFixed(1), y:(lp.y+dy).toFixed(1), 'text-anchor':anchor, 'font-family':'Inter', 'font-size':12.5, fill:'var(--text-dim)', 'font-weight':500});
+    text.textContent = s.label;
+    svg.appendChild(text);
+  });
+
+  // blocked spur (branches off node index 4 "Focused Work")
+  const a4 = pos(4, R);
+  const a5 = pos(5, R);
+  const spurAngleDeg = (a4.deg + a5.deg)/2;
+  const spurRad = spurAngleDeg*Math.PI/180;
+  const spurR = R + 96;
+  const spurPt = { x: cx + spurR*Math.cos(spurRad), y: cy + spurR*Math.sin(spurRad) };
+
+  const spurPath1 = el('path', {
+    d:`M ${a4.x.toFixed(1)} ${a4.y.toFixed(1)} Q ${spurPt.x.toFixed(1)} ${spurPt.y.toFixed(1)} ${a5.x.toFixed(1)} ${a5.y.toFixed(1)}`,
+    fill:'none', stroke:colors.coral, 'stroke-width':2, 'stroke-dasharray':'5 5', opacity:0.85
+  });
+  svg.appendChild(spurPath1);
+
+  const spurNode = el('circle', {cx:spurPt.x.toFixed(1), cy:spurPt.y.toFixed(1), r:15, fill:'var(--bg-elev)', stroke:colors.coral, 'stroke-width':2.5, filter:'url(#glow)'});
+  svg.appendChild(spurNode);
+  const spurMark = el('text', {x:spurPt.x.toFixed(1), y:(spurPt.y+4).toFixed(1), 'text-anchor':'middle', 'font-family':'Space Grotesk', 'font-size':13, 'font-weight':700, fill:colors.coral});
+  spurMark.textContent = '?';
+  svg.appendChild(spurMark);
+
+  const spurLabel1 = el('text', {x:spurPt.x.toFixed(1), y:(spurPt.y+30).toFixed(1), 'text-anchor':'middle', 'font-family':'Inter', 'font-size':11.5, 'font-weight':600, fill:'var(--text)'});
+  spurLabel1.textContent = 'Blocked?';
+  svg.appendChild(spurLabel1);
+  const spurLabel2 = el('text', {x:spurPt.x.toFixed(1), y:(spurPt.y+46).toFixed(1), 'text-anchor':'middle', 'font-family':'JetBrains Mono', 'font-size':9.5, fill:'var(--text-mute)'});
+  spurLabel2.textContent = '≤15min solve / else escalate';
+  svg.appendChild(spurLabel2);
+
+  // traveling pulse dot animated around the main ring
+  const motionPath = `M ${cx+R} ${cy} A ${R} ${R} 0 1 1 ${cx-R} ${cy} A ${R} ${R} 0 1 1 ${cx+R} ${cy}`;
+  const pulse = el('circle', {r:6, fill:'var(--text)', filter:'url(#glow)'});
+  const animMotion = el('animateMotion', {dur:'14s', repeatCount:'indefinite', path:motionPath, rotate:'auto'});
+  pulse.appendChild(animMotion);
+  svg.appendChild(pulse);
+
+  // center label
+  const centerLabel = el('text', {x:cx, y:cy-6, 'text-anchor':'middle', 'font-family':'Space Grotesk', 'font-size':16, 'font-weight':700, fill:'var(--text)'});
+  centerLabel.textContent = 'REPEAT';
+  svg.appendChild(centerLabel);
+  const centerSub = el('text', {x:cx, y:cy+14, 'text-anchor':'middle', 'font-family':'JetBrains Mono', 'font-size':10, fill:'var(--text-mute)'});
+  centerSub.textContent = 'DAILY';
+  svg.appendChild(centerSub);
+})();
+
+/* ===================== SIDEBAR ACTIVE STATE ===================== */
+(function(){
+  const links = document.querySelectorAll('nav.toc a');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+  const map = new Map();
+  links.forEach((l,i)=> map.set(sections[i], l));
+
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const link = map.get(entry.target);
+      if(!link) return;
+      if(entry.isIntersecting){
+        links.forEach(l=>{ l.classList.remove('active'); l.style.removeProperty('--accent-color'); });
+        link.classList.add('active');
+        const color = link.getAttribute('data-color');
+        link.style.setProperty('--accent-color', `var(--${color})`);
+        document.getElementById('topbarTitle').textContent = link.textContent.trim();
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+  sections.forEach(s => { if(s) observer.observe(s); });
+})();
+
+/* ===================== SCROLL REVEAL ===================== */
+(function(){
+  const items = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  items.forEach(i=>obs.observe(i));
+})();
+
+/* ===================== ACCORDION ===================== */
+(function(){
+  document.querySelectorAll('.acc-item').forEach(item=>{
+    const head = item.querySelector('.acc-head');
+    const body = item.querySelector('.acc-body');
+    function setHeight(){
+      if(item.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px';
+      else body.style.maxHeight = '0px';
+    }
+    setHeight();
+    head.addEventListener('click', ()=>{
+      item.classList.toggle('open');
+      setHeight();
+    });
+    window.addEventListener('resize', ()=>{ if(item.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; });
+  });
+})();
+
+/* ===================== CHECKLIST PROGRESS ===================== */
+(function(){
+  const items = document.querySelectorAll('.checklist li');
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  const total = items.length;
+  function update(){
+    const checked = document.querySelectorAll('.checklist li.checked').length;
+    fill.style.width = (total ? (checked/total*100) : 0) + '%';
+    label.textContent = checked + ' / ' + total + ' STEPS';
+  }
+  items.forEach(li=>{
+    li.addEventListener('click', ()=>{
+      li.classList.toggle('checked');
+      update();
+      // recalc accordion heights since content height didn't change, but keep safe
+    });
+  });
+  update();
+})();
+
+/* ===================== QUIZ ===================== */
+(function(){
+  const data = [
+    { q:"According to the framework, how many top-priority tasks should you choose at the start of the day?", opts:["1","3","5","10"], correct:1, explain:"Three keeps the list realistic for a single day — enough to matter, few enough to actually finish." },
+    { q:"Which task should you tackle first during your focused work session?", opts:["The easiest one","The shortest one","The hardest or most important one","Whatever arrived most recently"], correct:2, explain:"Doing the hardest task first uses your freshest focus and willpower on the work that benefits from it most." },
+    { q:"What is the suggested length of a single focused work session in this framework?", opts:["10–20 minutes","45–90 minutes","3–4 hours","All day, with no breaks"], correct:1, explain:"This roughly matches the body's natural ~90-minute basic rest-activity cycle of rising and falling alertness." },
+    { q:"If you hit a blocker, what's the first question the loop asks you?", opts:["Can I solve it in 15 minutes?","Should I quit for the day?","Who's to blame for this?","Can I ignore it forever?"], correct:0, explain:"The 15-minute check turns an open-ended 'I'm stuck' into a fast decision: solve now, or hand it off." },
+    { q:"What should you do if a blocker can't be solved within that short window?", opts:["Keep struggling alone for hours","Ask, coordinate, or escalate","Switch to a different career","Wait silently until tomorrow"], correct:1, explain:"Escalating quickly is what prevents a small blocker from quietly costing an entire afternoon." },
+    { q:"Why does the loop include a Mental/Energy Check after finishing a task?", opts:["To track billable hours","To decide if you need a short reset break before continuing","To rate your coworkers","To plan vacation days"], correct:1, explain:"It's an honest checkpoint — pushing through real fatigue tends to produce slower, lower-quality work." },
+    { q:"What real production-system tool inspired the 'blocked → escalate' idea highlighted in this guide?", opts:["Toyota's andon cord","A fire alarm","A spam filter","A vending machine"], correct:0, explain:"Toyota's andon cord lets any worker flag a problem instantly so help arrives in minutes, not after the defect spreads." },
+    { q:"What does the End Day Review help you do before shutting down mentally?", opts:["Start a brand-new project","Close open loops and set up tomorrow","Schedule more evening meetings","Re-read old emails"], correct:1, explain:"Reviewing and planning ahead while the day is fresh is what makes a clean mental shutdown possible." },
+    { q:"Which historical figure is known for a documented daily schedule that ended with a nightly self-review question?", opts:["Cal Newport","Benjamin Franklin","Elon Musk","Bill Gates"], correct:1, explain:"Franklin's autobiography describes a structured daily routine ending with the question, 'What good have I done today?'" },
+    { q:"What ties the whole framework together at the very end of the loop?", opts:["Doing it once and stopping","Repeating it daily so it becomes a habit","Outsourcing it entirely to someone else","Only using it on Mondays"], correct:1, explain:"Repetition is what turns a deliberate process into an automatic habit, lowering the effort needed to start each day." }
+  ];
+
+  const list = document.getElementById('quizList');
+  data.forEach((item, qi)=>{
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+
+    const qWrap = document.createElement('div');
+    qWrap.className = 'quiz-q';
+    const num = document.createElement('div'); num.className='qnum'; num.textContent = qi+1;
+    const h = document.createElement('h4'); h.textContent = item.q;
+    qWrap.appendChild(num); qWrap.appendChild(h);
+    card.appendChild(qWrap);
+
+    const optsWrap = document.createElement('div');
+    optsWrap.className = 'quiz-opts';
+    let picked = null;
+    const optEls = item.opts.map((optText, oi)=>{
+      const o = document.createElement('div');
+      o.className = 'quiz-opt';
+      o.textContent = optText;
+      o.addEventListener('click', ()=>{
+        optEls.forEach(e=>e.classList.remove('picked'));
+        o.classList.add('picked');
+        picked = oi;
+      });
+      optsWrap.appendChild(o);
+      return o;
+    });
+    card.appendChild(optsWrap);
+
+    const actions = document.createElement('div');
+    actions.className = 'quiz-actions';
+    const btn = document.createElement('button');
+    btn.className = 'btn-reveal';
+    btn.textContent = 'Reveal Answer';
+    actions.appendChild(btn);
+    card.appendChild(actions);
+
+    const explain = document.createElement('div');
+    explain.className = 'quiz-explain';
+    explain.textContent = item.explain;
+    card.appendChild(explain);
+
+    btn.addEventListener('click', ()=>{
+      optEls.forEach((e,oi)=>{
+        e.style.cursor = 'default';
+        if(oi === item.correct) e.classList.add('reveal-correct');
+        else if(oi === picked) e.classList.add('reveal-wrong-pick');
+      });
+      card.classList.add('answered');
+      btn.textContent = 'Answer Revealed';
+      btn.disabled = true;
+    });
+
+    list.appendChild(card);
+  });
+})();
+
+/* ===================== SEARCH ===================== */
+(function(){
+  const input = document.getElementById('searchInput');
+  const countEl = document.getElementById('searchCount');
+  const root = document.getElementById('mainContent');
+  let marks = [];
+  let currentIdx = -1;
+  let debounceTimer = null;
+
+  function clearMarks(){
+    marks.forEach(m=>{
+      const parent = m.parentNode;
+      if(!parent) return;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+    marks = [];
+    currentIdx = -1;
+  }
+
+  function walkAndWrap(node, regex){
+    if(node.nodeType === 3){
+      const text = node.nodeValue;
+      const match = regex.exec(text);
+      if(match){
+        const frag = document.createDocumentFragment();
+        let lastIndex = 0;
+        regex.lastIndex = 0;
+        let m;
+        let any = false;
+        while((m = regex.exec(text)) !== null){
+          any = true;
+          frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+          const mark = document.createElement('mark');
+          mark.className = 'search-hit';
+          mark.textContent = m[0];
+          frag.appendChild(mark);
+          marks.push(mark);
+          lastIndex = m.index + m[0].length;
+          if(m[0].length === 0) regex.lastIndex++;
+        }
+        if(any){
+          frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+          node.parentNode.replaceChild(frag, node);
+        }
+      }
+    } else if(node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('search-wrap')){
+      Array.from(node.childNodes).forEach(child => walkAndWrap(child, regex));
+    }
+  }
+
+  function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  function runSearch(query){
+    clearMarks();
+    if(query.trim().length < 2){
+      countEl.style.display = 'none';
+      return;
+    }
+    const regex = new RegExp(escapeRegex(query), 'gi');
+    Array.from(root.children).forEach(child => walkAndWrap(child, regex));
+    if(marks.length){
+      countEl.style.display = 'inline-block';
+      countEl.textContent = marks.length;
+      currentIdx = 0;
+      marks[0].classList.add('current');
+      marks[0].scrollIntoView({behavior:'smooth', block:'center'});
+    } else {
+      countEl.style.display = 'inline-block';
+      countEl.textContent = '0';
+    }
+  }
+
+  input.addEventListener('input', (e)=>{
+    clearTimeout(debounceTimer);
+    const v = e.target.value;
+    debounceTimer = setTimeout(()=>runSearch(v), 280);
+  });
+
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && marks.length){
+      e.preventDefault();
+      marks[currentIdx].classList.remove('current');
+      currentIdx = (currentIdx + 1) % marks.length;
+      marks[currentIdx].classList.add('current');
+      marks[currentIdx].scrollIntoView({behavior:'smooth', block:'center'});
+      countEl.textContent = (currentIdx+1) + '/' + marks.length;
+    }
+  });
+})();
+
+/* ===================== BACK TO TOP ===================== */
+(function(){
+  const btn = document.getElementById('backTop');
+  window.addEventListener('scroll', ()=>{
+    if(window.scrollY > 480) btn.classList.add('show');
+    else btn.classList.remove('show');
+  });
+  btn.addEventListener('click', ()=>{
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+})();
+
+/* ===================== MOBILE NAV TOGGLE ===================== */
+(function(){
+  const btn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  btn.addEventListener('click', ()=> sidebar.classList.toggle('open'));
+  document.querySelectorAll('nav.toc a').forEach(a=>{
+    a.addEventListener('click', ()=> sidebar.classList.remove('open'));
+  });
+})();
+</script>
+</body>
+</html>
