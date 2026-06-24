@@ -126,8 +126,34 @@
     border-bottom:1px solid var(--border-soft);
     z-index:30;
   }
-  .topbar-title{font-family:var(--font-mono); font-size:12.5px; color:var(--text-mute); letter-spacing:.08em; text-transform:uppercase;}
+  .topbar-title{font-family:var(--font-mono); font-size:12.5px; color:var(--text-mute); letter-spacing:.08em; text-transform:uppercase; flex:none;}
   .menu-btn{display:none; background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px; cursor:pointer;}
+
+  .topbar-right{display:flex; align-items:center; gap:20px;}
+
+  /* ---------- scroll progress (bar + ring) ---------- */
+  .scroll-progress{display:flex; align-items:center; gap:11px;}
+  .sp-track{
+    position:relative; width:130px; height:6px; border-radius:999px;
+    background:var(--bg-elev-3); overflow:hidden; flex:none;
+  }
+  .sp-fill{
+    position:absolute; top:0; left:0; bottom:0; width:0%;
+    background:linear-gradient(90deg, var(--violet), var(--amber) 50%, var(--teal));
+    border-radius:999px; transition:width .08s linear;
+  }
+  .sp-ring{position:relative; width:34px; height:34px; flex:none;}
+  .sp-ring svg{transform:rotate(-90deg);}
+  .sp-ring .ring-track{fill:none; stroke:var(--bg-elev-3); stroke-width:3;}
+  .sp-ring .ring-fill{
+    fill:none; stroke:var(--amber); stroke-width:3; stroke-linecap:round;
+    stroke-dasharray:87.96; stroke-dashoffset:87.96;
+    transition:stroke-dashoffset .08s linear, stroke .2s;
+  }
+  .sp-pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:9px; color:var(--text); letter-spacing:.01em;
+  }
 
   .search-wrap{position:relative; width:280px;}
   .search-wrap input{
@@ -363,7 +389,9 @@
     section{padding:46px 22px;}
     .hero{grid-template-columns:1fr;}
     .grid-2, .compare, .dosdonts, .people-grid, .company-grid{grid-template-columns:1fr;}
-    .search-wrap{width:170px;}
+    .search-wrap{width:150px;}
+    .sp-track{display:none;}
+    .topbar-right{gap:12px;}
   }
 </style>
 </head>
@@ -422,10 +450,22 @@
 
 <div class="topbar">
   <span class="topbar-title" id="topbarTitle">The Daily Loop</span>
-  <div class="search-wrap">
-    <svg class="search-icon" width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8.5" cy="8.5" r="6"/><line x1="17" y1="17" x2="13.2" y2="13.2"/></svg>
-    <input type="text" id="searchInput" placeholder="Search the guide…" autocomplete="off">
-    <span class="search-count" id="searchCount">0</span>
+  <div class="topbar-right">
+    <div class="scroll-progress" id="scrollProgress" title="Reading progress">
+      <div class="sp-track"><div class="sp-fill" id="spFill"></div></div>
+      <div class="sp-ring">
+        <svg width="34" height="34" viewBox="0 0 34 34">
+          <circle class="ring-track" cx="17" cy="17" r="14"></circle>
+          <circle class="ring-fill" id="ringFill" cx="17" cy="17" r="14"></circle>
+        </svg>
+        <span class="sp-pct" id="spPct">0%</span>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8.5" cy="8.5" r="6"/><line x1="17" y1="17" x2="13.2" y2="13.2"/></svg>
+      <input type="text" id="searchInput" placeholder="Search the guide…" autocomplete="off">
+      <span class="search-count" id="searchCount">0</span>
+    </div>
   </div>
 </div>
 
@@ -1224,6 +1264,37 @@
   btn.addEventListener('click', ()=>{
     window.scrollTo({top:0, behavior:'smooth'});
   });
+})();
+
+/* ===================== SCROLL PROGRESS (bar + ring) ===================== */
+(function(){
+  const fill = document.getElementById('spFill');
+  const ringFill = document.getElementById('ringFill');
+  const pct = document.getElementById('spPct');
+  const circumference = 2 * Math.PI * 14; // r=14 from the SVG circle
+  const colorStops = [
+    { at: 0,   color: 'var(--violet)' },
+    { at: 50,  color: 'var(--amber)'  },
+    { at: 100, color: 'var(--teal)'   }
+  ];
+  function colorFor(p){
+    if(p < 50) return colorStops[0].color;
+    if(p < 90) return colorStops[1].color;
+    return colorStops[2].color;
+  }
+  function update(){
+    const doc = document.documentElement;
+    const scrollTop = window.scrollY || doc.scrollTop;
+    const max = (doc.scrollHeight - doc.clientHeight) || 1;
+    const percent = Math.min(100, Math.max(0, (scrollTop / max) * 100));
+    fill.style.width = percent + '%';
+    ringFill.style.strokeDashoffset = circumference * (1 - percent / 100);
+    ringFill.style.stroke = colorFor(percent);
+    pct.textContent = Math.round(percent) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 })();
 
 /* ===================== MOBILE NAV TOGGLE ===================== */
